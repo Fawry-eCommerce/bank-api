@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class TransactionService {
@@ -37,5 +38,9 @@ public class TransactionService {
 
         return transcationRepository.save(transaction);
 
+    }
+    public List<Transaction> getTransactionsForAccount(int accountId) {
+        Account account = accountService.getAccountById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
+        return transcationRepository.findByAccount(account);
     }
 }
