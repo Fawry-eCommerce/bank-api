@@ -1,6 +1,8 @@
 package com.fawry.bankapi.service;
 
 
+import com.fawry.bankapi.dto.AccountDTO;
+import com.fawry.bankapi.mapper.AccountMapper;
 import com.fawry.bankapi.model.Account;
 import com.fawry.bankapi.repository.AccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +13,10 @@ import java.util.Optional;
 public class AccountService {
     @Autowired
     private AccountRepository accountRepository;
-    public Account createAccount(String cardNum, String name, String password, int cvv, float balance, String status) {
+
+    @Autowired
+    private AccountMapper accountMapper;
+    public AccountDTO createAccount(String cardNum, String name, String password, int cvv, float balance, String status) {
         Account account = new Account();
         account.setCardNum(cardNum);
         account.setName(name);
@@ -19,14 +24,14 @@ public class AccountService {
         account.setCVV(cvv);
         account.setBalance(balance);
         account.setStatus(status);
-        return accountRepository.save(account);
+        return accountMapper.toAccountDTO(accountRepository.save(account));
     }
-    public Optional<Account> getAccountById(int accountId) {
+    public Optional<Account> getAccountById(Long accountId) {
         return accountRepository.findById(accountId);
     }
 
-    public Account findByCardNumber(String cardNum) {
-        return accountRepository.findByCardNum(cardNum);
+    public AccountDTO  findByCardNumber(String cardNum) {
+        return accountMapper.toAccountDTO(accountRepository.findByCardNum(cardNum));
     }
 
     public boolean login(String cardNum, String password) {

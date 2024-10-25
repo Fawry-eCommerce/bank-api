@@ -1,5 +1,6 @@
 package com.fawry.bankapi.controller;
 
+import com.fawry.bankapi.dto.AccountDTO;
 import com.fawry.bankapi.model.Account;
 import com.fawry.bankapi.model.Transaction;
 import com.fawry.bankapi.service.AccountService;
@@ -22,13 +23,13 @@ public class BankController {
     private TransactionService transactionService;
 
     @PostMapping("/account")
-    public ResponseEntity<Account> createAccount(@RequestParam String cardNumber,
-                                                 @RequestParam String name,
-                                                 @RequestParam String password,
-                                                 @RequestParam int cvv,
-                                                 @RequestParam(defaultValue = "0.0") float balance,
-                                                 @RequestParam String status) {
-        Account account = accountService.createAccount(cardNumber, name, password, cvv, balance, status);
+    public ResponseEntity<AccountDTO> createAccount(@RequestParam String cardNumber,
+                                                    @RequestParam String name,
+                                                    @RequestParam String password,
+                                                    @RequestParam int cvv,
+                                                    @RequestParam(defaultValue = "0.0") float balance,
+                                                    @RequestParam String status) {
+        AccountDTO account = accountService.createAccount(cardNumber, name, password, cvv, balance, status);
         return ResponseEntity.ok(account);
     }
 
@@ -39,7 +40,7 @@ public class BankController {
     }
 
     @PostMapping("/transaction")
-    public ResponseEntity<Transaction> createTransaction(@RequestParam int accountId,
+    public ResponseEntity<Transaction> createTransaction(@RequestParam Long accountId,
                                                          @RequestParam String type,
                                                          @RequestParam float amount,
                                                          @RequestParam String details) {
@@ -48,13 +49,13 @@ public class BankController {
     }
 
     @PostMapping("/account/{accountId}/balance")
-    public ResponseEntity<Float> getAccountBalance(@PathVariable int accountId) {
+    public ResponseEntity<Float> getAccountBalance(@PathVariable Long accountId) {
         Account account = accountService.getAccountById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
         return ResponseEntity.ok(account.getBalance());
     }
 
     @PostMapping("/account/{accountId}/transactions")
-    public ResponseEntity<List<Transaction>> getTransactionsForAccount(@PathVariable int accountId) {
+    public ResponseEntity<List<Transaction>> getTransactionsForAccount(@PathVariable Long accountId) {
         List<Transaction> transactions = transactionService.getTransactionsForAccount(accountId);
         return ResponseEntity.ok(transactions);
     }

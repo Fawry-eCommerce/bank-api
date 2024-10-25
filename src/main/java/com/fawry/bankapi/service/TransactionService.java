@@ -17,7 +17,7 @@ public class TransactionService {
     @Autowired
     private AccountService accountService;
 
-    public Transaction createTransaction(int accountId, String type, float amount, String details) {
+    public Transaction createTransaction(Long accountId, String type, float amount, String details) {
         Account account = accountService.getAccountById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
 
         if (type.equals("withdraw") && account.getBalance() < amount) {
@@ -39,7 +39,7 @@ public class TransactionService {
         return transcationRepository.save(transaction);
 
     }
-    public List<Transaction> getTransactionsForAccount(int accountId) {
+    public List<Transaction> getTransactionsForAccount(Long accountId) {
         Account account = accountService.getAccountById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
         return transcationRepository.findByAccount(account);
     }
