@@ -8,6 +8,7 @@ import com.fawry.bankapi.repository.AccountRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
+import java.util.Random;
 
 @Service
 public class AccountService {
@@ -18,7 +19,7 @@ public class AccountService {
     private AccountMapper accountMapper;
     public AccountDTO createAccount(String cardNum, String name, String password, int cvv, float balance, String status) {
         Account account = new Account();
-        account.setCardNum(cardNum);
+        account.setCardNum(generateUniqueCardNum());
         account.setName(name);
         account.setPassword(password);
         account.setCVV(cvv);
@@ -26,6 +27,21 @@ public class AccountService {
         account.setStatus(status);
         return accountMapper.toAccountDTO(accountRepository.save(account));
     }
+
+    // Method to generate a unique 16-digit card number
+    private String generateUniqueCardNum() {
+        String cardNum;
+        Random random = new Random();
+        do {
+            StringBuilder cardNumBuilder = new StringBuilder(16);
+            for (int i = 0; i < 16; i++) {
+                cardNumBuilder.append(random.nextInt(10)); // Append random digit (0-9)
+            }
+            cardNum = cardNumBuilder.toString();
+        } while (accountRepository.findByCardNum(cardNum) != null); // Ensure uniqueness
+        return cardNum;
+    }
+
     public Optional<Account> getAccountById(Long accountId) {
         return accountRepository.findById(accountId);
     }
