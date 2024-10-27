@@ -1,63 +1,50 @@
 package com.fawry.bankapi.controller;
 
-import com.fawry.bankapi.model.Account;
+import com.fawry.bankapi.dto.*;
 import com.fawry.bankapi.model.Transaction;
 import com.fawry.bankapi.service.AccountService;
 import com.fawry.bankapi.service.TransactionService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
-@RequestMapping("/api/bank")
+@RequiredArgsConstructor
 public class BankController {
-    @Autowired
-    private AccountService accountService;
 
-    @Autowired
-    private TransactionService transactionService;
+    private final AccountService accountService;
+    private final TransactionService transactionService;
 
-    @PostMapping("/account")
-    public ResponseEntity<Account> createAccount(@RequestParam String cardNumber,
-                                                 @RequestParam String name,
-                                                 @RequestParam String password,
-                                                 @RequestParam int cvv,
-                                                 @RequestParam(defaultValue = "0.0") float balance,
-                                                 @RequestParam String status) {
-        Account account = accountService.createAccount(cardNumber, name, password, cvv, balance, status);
-        return ResponseEntity.ok(account);
+    @PostMapping("register")
+    @ResponseStatus(HttpStatus.CREATED)
+    public AccountDTO createAccount(@Valid @RequestBody AccountRequest accountRequest) {
+        return accountService.createAccount(accountRequest);
     }
 
     @PostMapping("login")
-    public ResponseEntity<String> login(@RequestParam String cardNum, @RequestParam String password) {
-        boolean isLoggedIn = accountService.login(cardNum, password);
-        return isLoggedIn ? ResponseEntity.ok("Login successful") : ResponseEntity.status(401).body("Invalid credentials");
+    public String login(@Valid @RequestBody LoginRequest loginRequest) {
+        boolean isLoggedIn = accountService.login(loginRequest);
+        return isLoggedIn ? "Login successful" : "Invalid credentials";
     }
 
-    @PostMapping("/transaction")
-    public ResponseEntity<Transaction> createTransaction(@RequestParam int accountId,
-                                                         @RequestParam String type,
-                                                         @RequestParam float amount,
-                                                         @RequestParam String details) {
-        Transaction transaction = transactionService.createTransaction(accountId, type, amount, details);
-        return ResponseEntity.ok(transaction);
+    @PostMapping("account/{accountId}/balance")
+    public float getAccountBalance(@PathVariable Long accountId) {
+        return accountService.getAccountBalance(accountId);
     }
 
-    @PostMapping("/account/{accountId}/balance")
-    public ResponseEntity<Float> getAccountBalance(@PathVariable int accountId) {
-        Account account = accountService.getAccountById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
-        return ResponseEntity.ok(account.getBalance());
+    @PostMapping("transactions")
+    public TransactionDto createTransaction(@RequestBody TransactionRequest transactionRequest) {
+        return transactionService.createTransaction(transactionRequest);
     }
 
-    @PostMapping("/account/{accountId}/transactions")
-    public ResponseEntity<List<Transaction>> getTransactionsForAccount(@PathVariable int accountId) {
-        List<Transaction> transactions = transactionService.getTransactionsForAccount(accountId);
-        return ResponseEntity.ok(transactions);
+    @PostMapping("transactions/{accountId}")
+    public Page<Transaction> getTransactionsForAccount(Pageable pageable, @PathVariable Long accountId) {
+        return transactionService.getTransactionsForAccount(pageable, accountId);
     }
-
 
 }
