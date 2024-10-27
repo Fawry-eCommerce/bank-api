@@ -27,9 +27,8 @@ public class BankController {
     }
 
     @PostMapping("login")
-    public String login(@Valid @RequestBody LoginRequest loginRequest) {
-        boolean isLoggedIn = accountService.login(loginRequest);
-        return isLoggedIn ? "Login successful" : "Invalid credentials";
+    public boolean login(@Valid @RequestBody LoginRequest loginRequest) {
+        return accountService.login(loginRequest);
     }
 
     @PostMapping("account/{accountId}/balance")
