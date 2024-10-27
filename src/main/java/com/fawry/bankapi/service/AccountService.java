@@ -2,64 +2,84 @@ package com.fawry.bankapi.service;
 
 
 import com.fawry.bankapi.dto.AccountDTO;
+import com.fawry.bankapi.dto.AccountRequest;
+import com.fawry.bankapi.dto.LoginRequest;
 import com.fawry.bankapi.mapper.AccountMapper;
 import com.fawry.bankapi.model.Account;
+import com.fawry.bankapi.model.AccountStatus;
 import com.fawry.bankapi.repository.AccountRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import java.util.Optional;
 import java.util.Random;
 
 @Service
+@RequiredArgsConstructor
 public class AccountService {
-    @Autowired
-    private AccountRepository accountRepository;
 
-    @Autowired
-    private AccountMapper accountMapper;
-    public AccountDTO createAccount(String cardNum, String name, String password, int cvv, float balance, String status) {
-        Account account = new Account();
-        account.setCardNum(generateUniqueCardNum());
-        account.setName(name);
-        account.setPassword(password);
-        account.setCVV(cvv);
-        account.setBalance(balance);
-        account.setStatus(status);
+    private final AccountRepository accountRepository;
+    private final AccountMapper accountMapper;
+
+    public AccountDTO createAccount(AccountRequest accountRequest) {
+        Account account = Account.builder()
+                .cardNum(generateUniqueCardNum())
+                .name(accountRequest.getName())
+                .password(accountRequest.getPassword())
+                .CVV(generateCVV())
+                .balance(0)
+                .status(AccountStatus.ACTIVE)
+                .build();
         return accountMapper.toAccountDTO(accountRepository.save(account));
     }
 
-    // Method to generate a unique 16-digit card number
     private String generateUniqueCardNum() {
-        String cardNum;
-        Random random = new Random();
+        String cardNumber;
         do {
-            StringBuilder cardNumBuilder = new StringBuilder(16);
-            for (int i = 0; i < 16; i++) {
-                cardNumBuilder.append(random.nextInt(10)); // Append random digit (0-9)
-            }
-            cardNum = cardNumBuilder.toString();
-        } while (accountRepository.findByCardNum(cardNum) != null); // Ensure uniqueness
-        return cardNum;
+            cardNumber = generateNumber(16);
+        } while (accountRepository.findByCardNum(cardNumber) != null);
+        return cardNumber;
     }
 
-    public Optional<Account> getAccountById(Long accountId) {
-        return accountRepository.findById(accountId);
+    private String generateCVV() {
+        return generateNumber(3);
     }
 
-    public AccountDTO  findByCardNumber(String cardNum) {
+    private String generateNumber(int len) {
+        StringBuilder number = new StringBuilder();
+        Random random = new Random();
+        for (int i = 0; i < len; i++) {
+            number.append(random.nextInt(10));
+        }
+        return number.toString();
+    }
+
+    public Account getAccount(Long accountId) {
+        return accountRepository.findById(accountId)
+                .orElseThrow(
+                        () -> new EntityNotFoundException("Account not found with id: " + accountId)
+                );
+    }
+
+    public AccountDTO getAccountById(Long accountId) {
+        return accountMapper.toAccountDTO(getAccount(accountId));
+    }
+
+    public AccountDTO findByCardNumber(String cardNum) {
         return accountMapper.toAccountDTO(accountRepository.findByCardNum(cardNum));
     }
 
-    public boolean login(String cardNum, String password) {
-        Account account = accountRepository.findByCardNum(cardNum);
-        return account != null && account.getPassword().equals(password);
+    public boolean login(LoginRequest loginRequest) {
+        Account account = accountRepository.findByCardNum(loginRequest.getCardNum());
+        return account != null && account.getPassword().equals(loginRequest.getPassword());
     }
 
     public void updateBalance(Account account, float amount) {
-        account.setBalance(account.getBalance() + amount);
+        account.setBalance(amount);
         accountRepository.save(account);
-
     }
 
-
+    public float getAccountBalance(Long accountId) {
+        Account account = getAccount(accountId);
+        return account.getBalance();
+    }
 }
