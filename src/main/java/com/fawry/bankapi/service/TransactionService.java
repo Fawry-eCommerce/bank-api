@@ -35,7 +35,7 @@ public class TransactionService {
         // Update account balance
         float newBalance = type == TransactionType.DEPOSIT
                 ? account.getBalance() + transactionRequest.getAmount()
-                : account.getBalance() - transactionRequest.getAmount(); // 3000 - 1500
+                : account.getBalance() - transactionRequest.getAmount();
         accountService.updateBalance(account, newBalance);
 
         String details = "Account number " + account.getCardNum() + " has been " + type.name().toLowerCase() + "ed with " + transactionRequest.getAmount() + " EGP";
