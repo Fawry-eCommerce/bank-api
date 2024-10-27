@@ -69,8 +69,11 @@ public class AccountService {
     }
 
     public boolean login(LoginRequest loginRequest) {
-        Account account = accountRepository.findByCardNum(loginRequest.getCardNum());
-        return account != null && account.getPassword().equals(loginRequest.getPassword());
+        Account account = accountRepository.findByCardNumAndPassword(loginRequest.getCardNum(), loginRequest.getPassword())
+                .orElseThrow(
+                        () -> new EntityNotFoundException("Invalid credentials")
+                );
+        return true;
     }
 
     public void updateBalance(Account account, float amount) {
