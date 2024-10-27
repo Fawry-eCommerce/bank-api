@@ -1,11 +1,16 @@
 package com.fawry.bankapi.model;
 
 import jakarta.persistence.*;
-import jdk.jfr.DataAmount;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Account {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,19 +26,12 @@ public class Account {
     private String password;
 
     @Column(nullable = false)
-    private int CVV;
+    private String CVV;
 
     @Column(nullable = false)
-    float balance;
+    private float balance;
 
     @Column(nullable = false)
-    private String status;
-
-
-
-
-
-
-
+    private AccountStatus status;
 
 }

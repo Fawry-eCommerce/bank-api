@@ -1,46 +1,60 @@
 package com.fawry.bankapi.service;
 
+import com.fawry.bankapi.dto.TransactionDto;
+import com.fawry.bankapi.dto.TransactionRequest;
+import com.fawry.bankapi.exception.InsufficientBalanceException;
+import com.fawry.bankapi.mapper.TransactionMapper;
 import com.fawry.bankapi.model.Account;
 import com.fawry.bankapi.model.Transaction;
-import com.fawry.bankapi.repository.TranscationRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.fawry.bankapi.model.TransactionType;
+import com.fawry.bankapi.repository.TransactionRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class TransactionService {
-    @Autowired
-    private TranscationRepository transcationRepository;
 
-    @Autowired
-    private AccountService accountService;
+    private final TransactionRepository transactionRepository;
+    private final AccountService accountService;
+    private final TransactionMapper transactionMapper;
 
-    public Transaction createTransaction(Long accountId, String type, float amount, String details) {
-        Account account = accountService.getAccountById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
+    public TransactionDto createTransaction(TransactionRequest transactionRequest) {
+        Account account = accountService.getAccount(transactionRequest.getAccountId());
 
-        if (type.equals("withdraw") && account.getBalance() < amount) {
-            throw new RuntimeException("Insufficient balance");
+        TransactionType type = transactionRequest.getType();
+
+        if (type == TransactionType.WITHDRAW && account.getBalance() < transactionRequest.getAmount()) {
+            throw new InsufficientBalanceException("Insufficient balance");
         }
 
         // Update account balance
-        float newBalance = type.equals("deposit") ? account.getBalance() + amount : account.getBalance() - amount;
+        float newBalance = type == TransactionType.DEPOSIT
+                ? account.getBalance() + transactionRequest.getAmount()
+                : account.getBalance() - transactionRequest.getAmount(); // 3000 - 1500
         accountService.updateBalance(account, newBalance);
+
+        String details = "Account number " + account.getCardNum() + " has been " + type.name().toLowerCase() + "ed with " + transactionRequest.getAmount() + " EGP";
 
         // Create transaction
         Transaction transaction = new Transaction();
         transaction.setAccount(account);
         transaction.setTransactionType(type);
-        transaction.setAmount(amount);
+        transaction.setAmount(transactionRequest.getAmount());
         transaction.setDetails(details);
         transaction.setCreatedAt(LocalDateTime.now());
 
-        return transcationRepository.save(transaction);
-
+        return transactionMapper.toTransactionDto(
+                transactionRepository.save(transaction)
+        );
     }
-    public List<Transaction> getTransactionsForAccount(Long accountId) {
-        Account account = accountService.getAccountById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
-        return transcationRepository.findByAccount(account);
+
+    public Page<Transaction> getTransactionsForAccount(Pageable pageable, Long accountId) {
+        Account account = accountService.getAccount(accountId);
+        return transactionRepository.findByAccount(account, pageable);
     }
 }
