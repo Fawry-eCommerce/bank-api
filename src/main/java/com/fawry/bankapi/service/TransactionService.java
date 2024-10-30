@@ -48,9 +48,12 @@ public class TransactionService {
         transaction.setDetails(details);
         transaction.setCreatedAt(LocalDateTime.now());
 
-        return transactionMapper.toTransactionDto(
-                transactionRepository.save(transaction)
-        );
+
+        TransactionDto transactionDto = transactionMapper.toTransactionDto(transactionRepository.save(transaction));
+        transactionDto.setNewBalance(newBalance);
+        return transactionDto;
+
+
     }
 
     public Page<Transaction> getTransactionsForAccount(Pageable pageable, Long accountId) {

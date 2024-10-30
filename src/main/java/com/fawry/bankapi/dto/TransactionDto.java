@@ -12,4 +12,6 @@ public class TransactionDto {
     private float amount;
     private String details;
     private LocalDateTime createdAt;
+    private float newBalance;
+
 }
