@@ -27,11 +27,11 @@ public class BankController {
     }
 
     @PostMapping("login")
-    public boolean login(@Valid @RequestBody LoginRequest loginRequest) {
+    public Long login(@Valid @RequestBody LoginRequest loginRequest) {
         return accountService.login(loginRequest);
     }
 
-    @PostMapping("account/{accountId}/balance")
+    @GetMapping("account/{accountId}/balance")
     public float getAccountBalance(@PathVariable Long accountId) {
         return accountService.getAccountBalance(accountId);
     }

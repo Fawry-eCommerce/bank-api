@@ -68,12 +68,12 @@ public class AccountService {
         return accountMapper.toAccountDTO(accountRepository.findByCardNum(cardNum));
     }
 
-    public boolean login(LoginRequest loginRequest) {
+    public Long login(LoginRequest loginRequest) {
         Account account = accountRepository.findByCardNumAndPassword(loginRequest.getCardNum(), loginRequest.getPassword())
                 .orElseThrow(
                         () -> new EntityNotFoundException("Invalid credentials")
                 );
-        return true;
+        return account.getAccountId();
     }
 
     public void updateBalance(Account account, float amount) {
