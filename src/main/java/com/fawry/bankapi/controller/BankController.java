@@ -37,8 +37,8 @@ public class BankController {
     }
 
     @PostMapping("transactions")
-    public TransactionDto createTransaction(@RequestBody TransactionRequest transactionRequest) {
-        return transactionService.createTransaction(transactionRequest);
+    public Long createTransaction(@RequestBody TransactionRequest transactionRequest) {
+        return transactionService.createTransaction(transactionRequest).getTransactionId();
     }
 
     @PostMapping("transactions/{accountId}")
